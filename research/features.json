@@ -1,0 +1,17 @@
+{
+  "natural_scenery": "The scenic beauty of the natural environment, from 0 (not scenic) to 1 (extremely picturesque).",
+  "cultural_richness": "The density and significance of cultural attractions (museums, temples, festivals), from 0 (none) to 1 (very rich).",
+  "adventure_level": "The intensity of adventure and outdoor activities available, from 0 (calm/relaxed) to 1 (extreme/adrenaline-filled).",
+  "family_friendliness": "Suitability for families with children, considering facilities and safety, from 0 (not suitable) to 1 (highly suitable).",
+  "beach_quality": "Quality of the beach (sand, water clarity, cleanliness), from 0 (poor) to 1 (excellent).",
+  "mountain_terrain": "Presence and prominence of mountainous landscape, from 0 (flat plain) to 1 (high, rugged mountains).",
+  "urban_vibrancy": "The energy and bustle of the urban environment, from 0 (quiet/sleepy) to 1 (very vibrant/bustling).",
+  "food_variety": "Diversity and quality of local cuisine and dining options, from 0 (limited/poor) to 1 (very diverse/excellent).",
+  "accommodation_quality": "Overall quality of available lodging, from 0 (basic/low quality) to 1 (luxurious/high quality).",
+  "transportation_accessibility": "Ease of access via public or private transport, from 0 (very difficult to reach) to 1 (very accessible).",
+  "cost_level": "General expense level for accommodations, food, and activities, from 0 (very cheap) to 1 (very expensive).",
+  "safety": "Perceived safety for tourists, from 0 (high risk/dangerous) to 1 (very safe).",
+  "relaxation_level": "The peacefulness and calmness of the atmosphere, from 0 (noisy/chaotic) to 1 (extremely tranquil).",
+  "nightlife_intensity": "Vibrancy of nightlife and evening entertainment, from 0 (none/nightlife ends early) to 1 (very intense/late-night).",
+  "historical_significance": "The historical importance and preservation of historical sites, from 0 (little to no historical sites) to 1 (highly significant)."
+}
