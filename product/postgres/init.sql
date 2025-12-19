@@ -1,5 +1,7 @@
 CREATE TABLE users (
-    user_id VARCHAR(100) PRIMARY KEY
+    user_id VARCHAR(100) PRIMARY KEY,
+    unprocessed_votes INT DEFAULT 0,
+    total_votes INT DEFAULT 0
 );
 
 CREATE TABLE places (
@@ -34,5 +36,14 @@ CREATE TABLE votes (
     place_id BIGINT NOT NULL,
     score FLOAT NOT NULL,
 
-    CONSTRAINT unique_user_place UNIQUE (user_id, place_id)
+    CONSTRAINT unique_user_place_reals UNIQUE (user_id, place_id)
+);
+
+CREATE TABLE virtual_scores (
+    vote_id SERIAL PRIMARY KEY,
+    user_id VARCHAR(100) NOT NULL,
+    place_id BIGINT NOT NULL,
+    score FLOAT NOT NULL,
+
+    CONSTRAINT unique_user_place_virtuals UNIQUE (user_id, place_id)
 );

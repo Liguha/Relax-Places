@@ -12,9 +12,9 @@ services:
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 3s
+      timeout: 2s
+      retries: 10
 
   api:
     build: 
@@ -30,20 +30,20 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
+      llm:
+        condition: service_started
+      recsys:
+        condition: service_started
 
   llm:
     build: ./llm
     ports:
       - "8001:8000"
-    depends_on:
-      - api
 
   recsys:
     build: ./recsys
     ports:
       - "8002:8000"
-    depends_on:
-      - api
 
 volumes:
   postgres_data:

@@ -8,14 +8,18 @@ from fastapi import FastAPI
 from asyncpg import create_pool, Connection, Pool
 
 sys.path.append(str(Path(__file__).parent.absolute()))
-from core import UsersWorker
-from core import PlacesWorker
+
+from core import UsersWorker, PlacesWorker, LLMSvc, RecSysSvc
 
 DATABASE_URL: str = os.getenv("DATABASE_URL")
+LLM_URL: str = "http://llm:8000"
+RECSYS_URL: str = "http://recsys:8000"
 
 pool: Pool
 users_worker: UsersWorker
 places_worker: PlacesWorker
+llm_svc: LLMSvc
+recsys_svc: RecSysSvc
 
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
@@ -23,6 +27,12 @@ async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
     pool = await create_pool(dsn=DATABASE_URL, min_size=5, max_size=20)
     users_worker = UsersWorker(pool)
     places_worker = PlacesWorker(pool)
+    llm_svc = LLMSvc(LLM_URL)
+    recsys_svc = RecSysSvc(RECSYS_URL)
+    if not await llm_svc.check_alive():
+        raise ValueError(f"Can't connect to `{llm_svc.svc_url}`")
+    if not await recsys_svc.check_alive():
+        raise ValueError(f"Can't connect to `{recsys_svc.svc_url}`")
     
     yield
     
@@ -69,17 +79,14 @@ async def add_comment_data(full_data: dict[str, Any]) -> dict[str, Any]:
         await places_worker.upsert_place(place_id, name, town, place_type, features)
     return {"status": "ok"}
 
-# TODO: REMOVE THIS
-@app.post("/see-places")
-async def add_comment_data(data: dict[str, Any]) -> dict[str, Any]:
-    key = data["key"]
-    async with pool.acquire() as conn:
-        conn: Connection
-        x = await conn.fetchval(f"SELECT natural_scenery FROM places WHERE place_id={key}")
-        y = await conn.fetchval(f"SELECT total_votes FROM places WHERE place_id={key}")
-        z = await conn.fetchval(f"SELECT is_indexed FROM places WHERE place_id={key}")
-        return {
-            "natural_scenery": x,
-            "total_votes": y,
-            "is_indexed": z
-        }
+@app.post("/add-comment")
+async def add_comment(messages: list[dict[str, str]]) -> dict[str, str]:
+    ...
+
+@app.post("/get-recommendation")
+async def add_comment(messages: list[dict[str, str]]) -> dict[str, str]:
+    ...
+
+@app.post("/process-messages")
+async def process_messages(request: dict[str, Any]) -> dict[str, Any]:
+    ...
