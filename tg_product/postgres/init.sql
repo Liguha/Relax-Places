@@ -3,8 +3,8 @@ CREATE TABLE IF NOT EXISTS messages (
     role TEXT NOT NULL,
     message_text TEXT NOT NULL,
     created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-    chat_id BIGINT NOT NULL
+    user_id BIGINT NOT NULL
 );
 
-CREATE INDEX IF NOT EXISTS idx_messages_chat_id ON messages(chat_id);
+CREATE INDEX IF NOT EXISTS idx_messages_user_id ON messages(user_id);
 CREATE INDEX IF NOT EXISTS idx_messages_created_at ON messages(created_at);
