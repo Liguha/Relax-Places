@@ -1,4 +1,4 @@
-from typing import ClassVar
+from typing import ClassVar, Any
 from asyncpg import Connection, Pool
 
 __all__ = ["PlacesWorker"]
@@ -26,11 +26,12 @@ class PlacesWorker:
         self._db_pool: Pool = db_pool
         self._min_votes: int = required_votes
 
-    async def upsert_place(self, place_id: int, name: str, town: str, place_type: str, vote_values: dict[str, float]) -> None:
+    async def upsert_place(self, place_id: int, name: str, description: str, town: str, place_type: str, vote_values: dict[str, str | float]) -> None:
         async with self._db_pool.acquire() as conn:
             conn: Connection
             set_parts = [
                 "name = EXCLUDED.name",
+                "description = EXCLUDED.description"
                 "town = EXCLUDED.town",
                 "type = EXCLUDED.type",
                 "total_votes = places.total_votes + 1"
@@ -51,17 +52,63 @@ class PlacesWorker:
                 f"END"
             )
             sql_template = f"""
-                INSERT INTO places (place_id, name, town, type, total_votes, {', '.join(self.FEATURES)})
+                INSERT INTO places (place_id, name, description, town, type, total_votes, {', '.join(self.FEATURES)})
                 VALUES (
-                    $1, $2, $3, $4, 
+                    $1, $2, $3, $4, $5,
                     1, 
-                    {', '.join([f'${i+5}' for i in range(len(self.FEATURES))])}
+                    {', '.join([f'${i+6}' for i in range(len(self.FEATURES))])}
                 )
                 ON CONFLICT (place_id) DO UPDATE SET
                     {', '.join(set_parts)}
                 RETURNING *
             """
-            params = [place_id, name, town, place_type]
+            params = [place_id, name, description, town, place_type]
             for field in self.FEATURES:
                 params.append(vote_values.get(field, 0.0))
-            return await conn.fetchrow(sql_template, *params)
+                await conn.fetchrow(sql_template, *params)
+        
+    async def all_places(self) -> list[dict[str, Any]]:
+        columns = ["place_id", "type"] + self.FEATURES
+        sql_template = f"""
+            SELECT {', '.join(columns)}
+            FROM places
+            WHERE is_indexed = TRUE
+            ORDER BY place_id;
+        """
+        async with self._db_pool.acquire() as conn:
+            conn: Connection
+            rows = await conn.fetch(sql_template)
+            places_list = []
+            for row in rows:
+                place_dict = {}
+                for column in columns:
+                    place_dict[column] = row[column]
+                places_list.append(place_dict)
+            return places_list
+        return []
+        
+    async def get_meta(self, place_ids: list[int]) -> list[dict[str, Any]]:
+        if not place_ids:
+            return []
+        
+        sql_template = """
+            SELECT place_id, name, description, town, type
+            FROM places
+            WHERE place_id = ANY($1::bigint[])
+            ORDER BY place_id;
+        """
+        async with self._db_pool.acquire() as conn:
+            conn: Connection
+            rows = await conn.fetch(sql_template, place_ids)
+            meta_list = []
+            for row in rows:
+                meta_dict = {
+                    "place_id": row["place_id"],
+                    "name": row["name"],
+                    "description": row["description"],
+                    "town": row["town"],
+                    "type": row["type"]
+                }
+                meta_list.append(meta_dict)
+            return meta_list
+        return []

@@ -7,6 +7,7 @@ CREATE TABLE users (
 CREATE TABLE places (
     place_id BIGINT PRIMARY KEY,
     name VARCHAR(255) NOT NULL,
+    description VARCHAR(2047) NOT NULL,
     town VARCHAR(255) NOT NULL,
     type VARCHAR(255) NOT NULL,
     

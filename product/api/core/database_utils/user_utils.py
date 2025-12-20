@@ -22,7 +22,7 @@ class UsersWorker:
             WITH inserted_vote AS (
                 INSERT INTO votes (user_id, place_id, score)
                 VALUES ($1, $2, $3)
-                ON CONFLICT ON CONSTRAINT unique_user_place 
+                ON CONFLICT ON CONSTRAINT unique_user_place_reals
                 DO NOTHING
                 RETURNING vote_id, user_id
             )
