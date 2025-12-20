@@ -36,7 +36,12 @@ services:
         condition: service_started
 
   llm:
-    build: ./llm
+    build:
+      context: ./llm
+      args:
+        LLM_BASE_URL: ${LLM_BASE_URL}
+        LLM_API_KEY: ${LLM_API_KEY}
+        LLM_NAME: ${LLM_NAME:-gpt-4o}
     ports:
       - "8001:8000"
 

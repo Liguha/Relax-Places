@@ -105,6 +105,8 @@ async def add_comment_data(full_data: dict[str, Any]) -> dict[str, Any]:
         return {"status": "ok"}
     except KeyError as e:
         return {"status": "error", "error": f"Required key `{e}` missed"}
+    except:
+        return {"status": "error"}
 
 # {
 #     "user_id": <user_id>,
@@ -162,8 +164,7 @@ async def get_recommendation(request: dict[str, Any]) -> dict[str, str]:
         best_predicts = await users_worker.best_predicts(user_id, 20, disallowed_places, allowed_types, allowed_towns)
         meta = await places_worker.get_meta(best_predicts)
         return {"status": "ok", "predicts": meta}
-    except Exception as e:
-        print(e)
+    except:
         return {"status": "error"}
 
 # {
@@ -189,3 +190,5 @@ async def process_messages(request: dict[str, Any]) -> dict[str, Any]:
         return {"status": "error", "error": "Not enought information provided"}
     except KeyError as e:
         return {"status": "error", "error": f"Required key `{e}` missed"}
+    except:
+        return {"status": "error"}
