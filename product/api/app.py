@@ -59,6 +59,20 @@ async def check_db() -> dict[str, Any]:
         return {"database": "error", "error": str(e)}
 
 # {
+#     "model_path": <optional_path_str>,
+#     "seed": <optional_int>
+# }
+@app.post("/train-model")
+async def train_model(request: dict[str, Any] = {}) -> dict[str, Any]:
+    try:
+        model_path: str = request.get("model_path", "model.cbm")
+        seed: int = request.get("seed", 77)
+        await users_worker.train_model(model_path=model_path, seed=seed)
+        return {"status": "ok", "model_path": model_path}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
+# {
 #     "user_id": <user_id>,
 #     "place_id": <place_id>,
 #     "name": <place_name>,
