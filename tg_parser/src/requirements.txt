@@ -1,0 +1,4 @@
+aiohttp==3.13.2
+loguru==0.7.3
+python-dotenv==1.2.1
+telethon==1.42.0

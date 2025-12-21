@@ -1,0 +1,9 @@
+version: '3.8'
+
+services:
+  bot:
+    build: ./src
+    container_name: telegram-parser
+    restart: unless-stopped
+    env_file:
+      - ./src/.env

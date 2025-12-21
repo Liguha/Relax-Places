@@ -1,16 +1,15 @@
 import os
-import json
 import asyncio
+import aiohttp
+import asyncpg
+
 from datetime import datetime
 from typing import List, Dict, Deque
 from collections import deque
 from dataclasses import dataclass
-
 from aiogram import Bot, Dispatcher, types
 from aiogram.filters import Command
 from aiogram.types import Message
-import aiohttp
-import asyncpg
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -34,7 +33,7 @@ class Database:
     async def connect():
         global db_pool
         db_pool = await asyncpg.create_pool(DATABASE_URL)
-        print("✓ Подключение к БД установлено")
+        print("Подключение к БД установлено")
     
     @staticmethod
     async def save_message(user_id: int, role: str, text: str):
@@ -131,7 +130,7 @@ async def load_cache():
             if messages:
                 message_cache[user_id] = deque(messages, maxlen=MESSAGES_LIMIT)
         
-        print(f"✓ Загружен кэш для {len(message_cache)} пользователей")
+        print(f"Кэш прогрет для {len(message_cache)} пользователей")
 
 async def main():
     await Database.connect()
@@ -141,13 +140,13 @@ async def main():
     dp.message.register(start_command, Command("start"))
     dp.message.register(handle_message)
     
-    print("✓ Бот запущен")
+    print("Старт")
     
     await dp.start_polling(bot)
 
 if __name__ == "__main__":
     if not BOT_TOKEN:
-        print("❌ Ошибка: TELEGRAM_BOT_TOKEN не установлен в .env файле")
+        print("TELEGRAM_BOT_TOKEN не установлен в .env файле")
         exit(1)
     
     asyncio.run(main())
