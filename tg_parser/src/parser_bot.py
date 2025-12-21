@@ -1,14 +1,14 @@
+import os
+import signal
 import asyncio
 import aiohttp
+
+from loguru import logger
+from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from typing import List, Dict, Any
 from telethon import TelegramClient
 from telethon.tl.types import Message, Channel
-from loguru import logger
-import os
-import signal
-
-from dotenv import load_dotenv
 
 load_dotenv()
 
@@ -21,10 +21,10 @@ SERVER_URL: str = os.getenv("SERVER_URL")
 
 TELEGRAM_API_ID: int = int(os.getenv("TELEGRAM_API_ID"))
 TELEGRAM_API_HASH: str = os.getenv("TELEGRAM_API_HASH")
+TELEGRAM_BOT_TOKEN: str = os.getenv("TELEGRAM_BOT_TOKEN")
 
 class TelegramParserBot:
     def __init__(self):
-        # Telegram Client для парсинга
         self.client = TelegramClient(
             'parser_session_v2',
             TELEGRAM_API_ID,
@@ -35,29 +35,24 @@ class TelegramParserBot:
         self.last_parsed = {}
         self.processed_messages = set()
         self.is_running = True
-        
-        log_dir = "logs"
-        os.makedirs(log_dir, exist_ok=True)
-        logger.add(f"{log_dir}/parser_{{time:YYYY-MM-DD}}.log", rotation="1 day", retention="7 days")
+        self.bot_token = TELEGRAM_BOT_TOKEN
         
         signal.signal(signal.SIGINT, self.signal_handler)
         signal.signal(signal.SIGTERM, self.signal_handler)
         
     def signal_handler(self, signum, frame):
-        logger.info(f"Получен сигнал {signum}, завершаю работу...")
+        logger.info(f"Получен сигнал {signum}, завершение программы")
         self.is_running = False
         
     async def start_parser(self) -> None:
-        await self.client.start()
-        logger.info("Telegram клиент запущен для парсинга")
+        await self.client.start(bot_token=self.bot_token)
+        logger.info("Клиент запущен для парсинга")
         
         await self.parse_all_channels()
         
         asyncio.create_task(self.periodic_parser())
         
-    async def periodic_parser(self):
-        logger.info(f"Периодический парсинг запущен каждые {PARSE_INTERVAL_MINUTES} минут")
-        
+    async def periodic_parser(self):        
         while self.is_running:
             try:
                 await asyncio.sleep(PARSE_INTERVAL_MINUTES * 60)
@@ -65,7 +60,6 @@ class TelegramParserBot:
                 if not self.is_running:
                     break
                     
-                logger.info("Запуск планового парсинга...")
                 await self.parse_all_channels()
                 
             except asyncio.CancelledError:
@@ -92,7 +86,7 @@ class TelegramParserBot:
             
     async def parse_channel(self, channel_identifier: str) -> None:
         try:
-            logger.info(f"Начинаю парсинг канала: {channel_identifier}")
+            logger.info(f"Парсинг канала: {channel_identifier}")
             
             entity = await self.client.get_entity(channel_identifier)
             logger.info(f"Канал найден: {entity.title}")
@@ -103,7 +97,7 @@ class TelegramParserBot:
             message_count = 0
             keyword_matches = 0
             
-            logger.info(f"Загружаю сообщения с {since_date}...")
+            logger.info(f"Сообщения с {since_date}...")
             
             async for message in self.client.iter_messages(
                 entity,
@@ -129,7 +123,7 @@ class TelegramParserBot:
             if messages_data:
                 await self.send_to_server(messages_data)
                 
-            logger.info(f"Канал {channel_identifier}: проверено сообщений, найдено по ключевым словам: {keyword_matches}, обработано: {message_count}")
+            logger.info(f"Канал {channel_identifier}: найдено по ключевым словам: {keyword_matches}, обработано: {message_count}")
             self.last_parsed[channel_identifier] = datetime.now()
             
         except Exception as e:
@@ -209,7 +203,7 @@ class TelegramParserBot:
         try:
             await self.start_parser()
             
-            logger.info("Парсер запущен. Для остановки нажмите Ctrl+C")
+            logger.info("Парсер запущен")
             
             while self.is_running:
                 await asyncio.sleep(1)
@@ -222,17 +216,17 @@ class TelegramParserBot:
             await self.shutdown()
             
     async def shutdown(self):
-        logger.info("Завершаю работу парсера...")
+        logger.info("Завершение")
         await self.client.disconnect()
         logger.info("Парсер остановлен")
 
 async def main():
     if not TELEGRAM_API_ID or not TELEGRAM_API_HASH:
-        logger.error("Не установлены TELEGRAM_API_ID или TELEGRAM_API_HASH в .env файле!")
+        logger.error("TELEGRAM_API_ID или TELEGRAM_API_HASH отсутсвуют .env файле")
         return
         
     if not SOURCE_CHANNELS:
-        logger.error("Не указаны каналы для парсинга в SOURCE_CHANNELS!")
+        logger.error("Пустой список каналов в парсинге SOURCE_CHANNELS")
         return
         
     parser_bot = TelegramParserBot()
