@@ -21,4 +21,9 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD ["uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]
+RUN apt-get update && apt-get install -y netcat-openbsd && rm -rf /var/lib/apt/lists/*
+
+COPY wait-for-it.sh /app/wait-for-it.sh
+RUN chmod +x /app/wait-for-it.sh
+
+CMD ["/app/wait-for-it.sh", "llm:8000", "--", "/app/wait-for-it.sh", "recsys:8000", "--", "uvicorn", "app:app", "--host", "0.0.0.0", "--port", "8000"]

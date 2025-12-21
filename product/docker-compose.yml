@@ -1,5 +1,3 @@
-version: '3.7'
-
 services:
   postgres:
     build: ./postgres
@@ -14,9 +12,9 @@ services:
       - ./postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U appuser -d appdb"]
-      interval: 10s
-      timeout: 5s
-      retries: 5
+      interval: 3s
+      timeout: 2s
+      retries: 10
 
   api:
     build: 
@@ -32,22 +30,25 @@ services:
     depends_on:
       postgres:
         condition: service_healthy
-    environment:
-      DATABASE_URL: "postgresql://appuser:apppass@postgres:5432/appdb"
+      llm:
+        condition: service_started
+      recsys:
+        condition: service_started
 
   llm:
-    build: ./llm
+    build:
+      context: ./llm
+      args:
+        LLM_BASE_URL: ${LLM_BASE_URL}
+        LLM_API_KEY: ${LLM_API_KEY}
+        LLM_NAME: ${LLM_NAME:-gpt-4o}
     ports:
       - "8001:8000"
-    depends_on:
-      - api
 
   recsys:
     build: ./recsys
     ports:
       - "8002:8000"
-    depends_on:
-      - api
 
 volumes:
   postgres_data:
