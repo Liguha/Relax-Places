@@ -8,8 +8,11 @@ from fastapi import FastAPI
 from asyncpg import create_pool, Connection, Pool
 
 sys.path.append(str(Path(__file__).parent.absolute()))
+# Добавляем путь к recsys для импорта модуля обучения
+sys.path.append(str(Path(__file__).parent.parent / "recsys"))
 
 from core import UsersWorker, PlacesWorker, LLMSvc, RecSysSvc, MessagesType, should_recalculate
+from core.train import train_model as train_model_func
 
 DATABASE_URL: str = os.getenv("DATABASE_URL")
 LLM_URL: str = "http://llm:8000"
@@ -65,9 +68,9 @@ async def check_db() -> dict[str, Any]:
 @app.post("/train-model")
 async def train_model(request: dict[str, Any] = {}) -> dict[str, Any]:
     try:
-        model_path: str = request.get("model_path", "model.cbm")
-        seed: int = request.get("seed", 77)
-        await users_worker.train_model(model_path=model_path, seed=seed)
+        model_path: str = request.get("model_path", "/models/model.cbm")
+        seed: int = request.get("seed", 228)
+        await train_model_func(pool, model_path=model_path, seed=seed)
         return {"status": "ok", "model_path": model_path}
     except Exception as e:
         return {"status": "error", "error": str(e)}

@@ -33,7 +33,7 @@ def get_model() -> CatBoostRegressor:
     """Загрузка модели"""
     global _model
     if _model is None:
-        model_path = os.getenv("MODEL_PATH", "model.cbm")
+        model_path = os.getenv("MODEL_PATH", "/models/model.cbm")
         if not Path(model_path).exists():
             raise FileNotFoundError(f"Model file not found: {model_path}")
         _model = CatBoostRegressor()

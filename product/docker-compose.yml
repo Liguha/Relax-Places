@@ -27,6 +27,8 @@ services:
         DB_PASSWORD: ${POSTGRES_PASSWORD:-apppass}
     ports:
       - "8000:8000"
+    volumes:
+      - models_data:/models
     depends_on:
       postgres:
         condition: service_healthy
@@ -49,6 +51,11 @@ services:
     build: ./recsys
     ports:
       - "8002:8000"
+    volumes:
+      - models_data:/models
+    environment:
+      - MODEL_PATH=/models/model.cbm
 
 volumes:
   postgres_data:
+  models_data:
