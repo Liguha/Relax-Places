@@ -1,0 +1,23 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+Person(user, "User", "A user of the rec platform")
+
+Container(telegram, "Telegram", "cloud", "Handles users messages")
+
+System_Boundary(chatsSystem, "Chats System") {
+    Container(chatsService, "Chat bot", "Python", "Handles users messgaes", $tags="tgBot")
+    ContainerDb(chatsDatabase, "Chats Database", "PostgreSQL", "Stores chats information", $tags="db")
+}
+
+Container_Boundary(externalSystems, "External Systems") {
+    Container(recSystem, "Rec System", "Software System", "Handles users recommendations")
+}
+
+Rel(user, telegram, "send messages")
+Rel(telegram, chatsService, "forwards messages", "rest")
+Rel(chatsService, chatsDatabase, "Reads/Writes chats data", "SQL")
+Rel(chatsService, recSystem, "Get users recommendations", "rest")
+
+
+@enduml

@@ -1,0 +1,16 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+AddRelTag("dotted", $lineColor="black", $lineStyle = DashedLine())
+
+Person(user, "User")
+Container(chatSystem, "Chats System", "Software system", "Handles users personal messages")
+Container(recSystem, "Rec System", "Software system", "Generates recomendations for user")
+Container(parserSystem, "Parser System", "Software system", "Gets new information for recomendations")
+
+Rel(user, chatSystem, "Communicates with user")
+
+Rel(chatSystem, recSystem, "Requests recomendations", $tags="dotted")
+Rel(recSystem, parserSystem, "Fetches data", $tags="dotted")
+
+@enduml
