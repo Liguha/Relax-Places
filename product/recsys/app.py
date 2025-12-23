@@ -1,14 +1,33 @@
 import os
 from typing import Any
 from pathlib import Path
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
 from fastapi import FastAPI
+from asyncpg import create_pool, Pool
 import pandas as pd
 import numpy as np
 from catboost import CatBoostRegressor
 
-app: FastAPI = FastAPI()
+from core.train import train_model
 
+DATABASE_URL: str = os.getenv("DATABASE_URL", "postgresql://appuser:apppass@postgres:5432/appdb")
+
+pool: Pool | None = None
 _model: CatBoostRegressor | None = None
+
+@asynccontextmanager
+async def lifespan(app: FastAPI) -> AsyncGenerator[None, None]:
+    global pool
+    try:
+        pool = await create_pool(dsn=DATABASE_URL, min_size=2, max_size=10)
+    except Exception as e:
+        pool = None
+    yield
+    if pool:
+        await pool.close()
+
+app: FastAPI = FastAPI(lifespan=lifespan)
 
 # Фичи, используемые в модели 
 FEATURES = [
@@ -161,9 +180,62 @@ async def ping() -> dict[str, str]:
 #         ...
 #     ]
 # }
+# {
+#     "model_path": <optional_path_str>,
+#     "seed": <optional_int>
+# }
+@app.post("/train")
+async def train(request: dict[str, Any] = {}) -> dict[str, Any]:
+    try:
+        if pool is None:
+            return {"status": "error", "error": "Database pool not initialized"}
+        model_path: str = request.get("model_path", "/models/model.cbm")
+        seed: int = request.get("seed", 228)
+        await train_model(pool, model_path=model_path, seed=seed)
+
+        global _model
+        _model = None
+        return {"status": "ok", "model_path": model_path}
+    except Exception as e:
+        return {"status": "error", "error": str(e)}
+
 @app.post("/predict-scores")
 async def predict_scores(request: dict[str, Any]) -> dict[str, Any]:
     try:
+        if pool is None:
+            return {
+                "status": "error",
+                "error": "Database pool not initialized",
+                "estimated_scores": []
+            }
+        
+        model_path = os.getenv("MODEL_PATH", "/models/model.cbm")
+        seed = 228
+    
+        try:
+            await train_model(pool, model_path=model_path, seed=seed)
+            global _model
+            _model = None
+        except ValueError as e:
+            if "No data available" in str(e):
+                model_path_obj = Path(model_path)
+                if not model_path_obj.exists():
+                    return {
+                        "status": "error",
+                        "error": "No training data available and model file not found",
+                        "estimated_scores": []
+                    }
+            else:
+                raise
+        except Exception as e:
+            model_path_obj = Path(model_path)
+            if not model_path_obj.exists():
+                return {
+                    "status": "error",
+                    "error": f"Training failed and model file not found: {str(e)}",
+                    "estimated_scores": []
+                }
+        
         voted_places: list[dict[str, Any]] = request.get("voted_places", [])
         places_scores: list[float] = request.get("places_scores", [])
         estimated_places: list[dict[str, Any]] = request.get("estimated_places", [])
