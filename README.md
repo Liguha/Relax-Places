@@ -48,7 +48,7 @@
 </p>
 
 <p align="center">
-    </br><b>Level 3.</b> RecSystem container diagram</br></br>
+    </br><b>Level 2.</b> Rec system container diagram</br></br>
 </p> 
 
 <p align="center">
