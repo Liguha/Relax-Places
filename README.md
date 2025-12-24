@@ -28,7 +28,7 @@
 </p>
 
 <p align="center">
-  <img src="architecture/context.png" />
+  <img src="docs/architecture/context.png" />
 </p>
 
 <p align="center">
@@ -36,7 +36,7 @@
 </p> 
 
 <p align="center">
-  <img src="architecture/chats/chats.png" />
+  <img src="docs/architecture/chats/chats.png" />
 </p>
 
 <p align="center">
@@ -44,5 +44,13 @@
 </p> 
 
 <p align="center">
-  <img src="architecture/parser/parser.png" />
+  <img src="docs/architecture/parser/parser.png" />
+</p>
+
+<p align="center">
+    </br><b>Level 3.</b> RecSystem container diagram</br></br>
+</p> 
+
+<p align="center">
+  <img src="docs/architecture/recsystem/recsystem.png" />
 </p>

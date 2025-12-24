@@ -1,0 +1,18 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+System_Boundary(apiSystem, "Entry Point") {
+    Container(api, "API", "cloud", "Recomendations/comments preprocessing and storing")
+    ContainerDb(database, "Database", "PostgreSQL", "Stores places, users and comments", $tags="db")
+}
+
+System_Boundary(mlServices, "ML Services") {
+    Container(llm, "LLM", "cloud", "Valuable information extraction via LLM")
+    Container(recsys, "RecSys", "cloud", "Personalized recomendations via ML model")
+}
+
+Rel(api, database, "Read/write places, users, recommendations, comments", "SQL")
+Rel(api, llm, "Parse comments", "rest")
+Rel(api, recsys, "Model retraining and prediction", "rest")
+
+@enduml
