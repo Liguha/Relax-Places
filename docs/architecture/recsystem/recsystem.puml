@@ -1,0 +1,23 @@
+@startuml
+!include https://raw.githubusercontent.com/plantuml-stdlib/C4-PlantUML/master/C4_Container.puml
+
+System_Boundary(recSystem, "Rec System") {
+    Container(recSvc, "RecSvc", "Python", "Recomendations/comments preprocessing and storing", $tags="webApp")
+    ContainerDb(recDb, "Database", "PostgreSQL", "Stores places, users and comments", $tags="db")
+    Container(llm, "LLM", "cloud", "Valuable information extraction via LLM")
+    Container(recsys, "RecSys", "cloud", "Personalized recomendations via ML model")
+}
+
+Container_Boundary(externalSystems, "External Systems") {
+    Container(chatsSystem, "Chat System", "Software System", "Handles users chats")
+    Container(parserSystem, "Parser System", "Software System", "Handles new info")
+}
+
+Rel(recSvc, recDb, "Read/write places, users, recommendations, comments", "SQL")
+Rel(recSvc, llm, "Parse comments", "rest")
+Rel(recSvc, recsys, "Model retraining and prediction", "rest")
+Rel(recSvc, chatsSystem, "Get messages to answer", "rest")
+Rel(recSvc, parserSystem, "Get info to proccess", "rest")
+
+
+@enduml
